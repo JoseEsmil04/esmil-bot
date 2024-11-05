@@ -1,10 +1,11 @@
-import { createBot, createProvider, createFlow, addKeyword, utils, EVENTS } from '@builderbot/bot'
+import 'dotenv/config'
+import { createBot, createProvider, createFlow, addKeyword, EVENTS } from '@builderbot/bot'
 import { MemoryDB as Database } from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { geminiChat } from './ia/gemini-ai'
 import { getImageFromPexels } from './images/get-image-pexels';
-import 'dotenv/config'
 import { menu } from './helpers/menu'
+import { mp3urlToDownload } from './music/get-music'
 
 const PORT = process.env.PORT ?? 3008
 
@@ -12,9 +13,9 @@ const welcomeFlow = addKeyword<Provider, Database>(['Esmil Bot', 'esmilbot', 'bo
     .addAnswer(`Hola! Soy *EsmilBot* 👨🏽‍💻⚡\n`)
     .addAnswer(
         [
-            'Soy un bot desarrollado por Jose Esmil!\n',
+            'Soy un bot desarrollado por Jose Esmi!\n',
             `👉 Escribe ${'*menu*'} para acceder al menu :)`,
-						`Actualmente me encuentro en desarrollo, mas funcionalidades coming soon :D`
+						`Actualmente me encuentro en desarrollo, mas funcionalidades coming soon!`
         ].join('\n'),
         { delay: 1200, capture: true },
         async (ctx, { flowDynamic, gotoFlow }) => {
@@ -25,15 +26,38 @@ const welcomeFlow = addKeyword<Provider, Database>(['Esmil Bot', 'esmilbot', 'bo
         },
     )
 
-//TODO: GET MUSIC
 const getMusic = addKeyword<Provider, Database>(EVENTS.ACTION)
-	.addAnswer('Musica en desarrollo... el vago de Esmil no termina esto', { capture: true }, async (ctx, { flowDynamic }) => {
+	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\nIntroduce el titulo de la cancion y el cantante..\n',
+		'Mientras mas claro mejor jeje', 'Para volver al menu diga: *menu*'],
+		{ capture: true }, async (ctx, { flowDynamic, gotoFlow }) => {
+
+		if(ctx.body.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow);
+
+		const { title, result } = await mp3urlToDownload(ctx.body, process.env.RAPID_API_KEY);
+		
+		await flowDynamic([
+			{ delay: 1500, body: `*Audio:* ${title}`},
+			{ body: result.link },
+			{ delay: 700, body: '*EsmilBot* 👨🏽‍💻⚡\nAccede al link y Disfruta tu musica :)' }
+		])
+	}).addAnswer('Quieres bajar otra musica?\nEscribe *(Si)* si deseas continuar,\n*(No)* si deseas salir!', { capture: true },
+		async (ctx, { fallBack, gotoFlow }) => {
+			if (!ctx.body.toLocaleLowerCase().includes('si') && !ctx.body.toLocaleLowerCase().includes('no')) {
+				return fallBack('Respuesta no valida!, Escribe *Si* o *No*')
+			}
+
+			if (ctx.body.toLocaleLowerCase().includes('si')) return gotoFlow(getMusic)
+			else return
+		}
+	).addAnswer('Esta bien, regresemos al menu...', { delay: 1000 }, async (_, { gotoFlow }) => {
+		return gotoFlow(menuFlow)
 	})
 
 const flowConsultasIA = addKeyword<Provider, Database>(EVENTS.ACTION)
-	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\n', 'Preguntame algo!'], { capture: true }, async (ctx, { flowDynamic }) => {
+	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\n', 'Preguntame algo!', 'Para volver al menu diga: *menu*'],
+		{ capture: true }, async (ctx, { flowDynamic, gotoFlow }) => {
 		const consulta = ctx.body;
-
+		if(consulta.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow)
 		const answer = await geminiChat(process.env.GEMINI_API_KEY, consulta);
 		await flowDynamic([
 			{
@@ -41,7 +65,8 @@ const flowConsultasIA = addKeyword<Provider, Database>(EVENTS.ACTION)
 				delay: 1500
 			}
 		])
-	}).addAnswer('Tienes otra pregunta :)? Escribe *(Si)* si deseas continuar,\n*(No)* si deseas salir!',
+	}).addAnswer(['*EsmilBot* 👨🏽‍💻⚡\n',
+			'Tienes otra pregunta :)? Escribe *(Si)* si deseas continuar,\n*(No)* si deseas salir!'],
 		{ capture: true },
 		async (ctx, { fallBack, gotoFlow }) => {
 			if (!ctx.body.toLocaleLowerCase().includes('si') && !ctx.body.toLocaleLowerCase().includes('no')) {
@@ -55,20 +80,20 @@ const flowConsultasIA = addKeyword<Provider, Database>(EVENTS.ACTION)
 		return gotoFlow(menuFlow)
 	})
 
-const flowPexelsImg = addKeyword<Provider, Database>(EVENTS.ACTION)
-	.addAnswer('Ingrese una palabra clave para buscar la *Imagen*:', { capture: true },
-		async (ctx, { flowDynamic }) => {
+const pexelsImgFlow = addKeyword<Provider, Database>(EVENTS.ACTION)
+	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\nIngrese una palabra clave para buscar la *Imagen*:', 'Para volver al menu diga: *menu*'], { capture: true },
+		async (ctx, { flowDynamic, gotoFlow }) => {
 			const { body, media } = await getImageFromPexels(ctx.body, process.env.PEXELS_API_KEY)
-
+			if(ctx.body.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow)
 			await flowDynamic([{ body, media }])
 		}
-	).addAnswer('Quieres buscar otra imagen?', { capture: true },
+	).addAnswer('Quieres buscar otra imagen? Escribe *(Si)* si deseas continuar,\n*(No)* si deseas salir!', { capture: true },
 		async (ctx, { fallBack, gotoFlow }) => {
 			if (!ctx.body.toLocaleLowerCase().includes('si') && !ctx.body.toLocaleLowerCase().includes('no')) {
 				return fallBack('Respuesta no valida!, Escribe *Si* o *No*')
 			}
 
-			if (ctx.body.toLocaleLowerCase().includes('si')) return gotoFlow(flowPexelsImg)
+			if (ctx.body.toLocaleLowerCase().includes('si')) return gotoFlow(pexelsImgFlow)
 			else return
 		}
 	).addAnswer('Esta bien, regresemos al menu...', { delay: 1000 }, async (_, { gotoFlow }) => {
@@ -85,7 +110,7 @@ const menuFlow = addKeyword<Provider, Database>('menu').addAnswer(
 
 		switch (ctx.body) {
 			case '1':
-				return gotoFlow(flowPexelsImg)
+				return gotoFlow(pexelsImgFlow)
 			case '2':
 				return gotoFlow(flowConsultasIA)
 			case '3':
@@ -99,7 +124,7 @@ const menuFlow = addKeyword<Provider, Database>('menu').addAnswer(
 )
 
 const main = async () => {
-    const adapterFlow = createFlow([welcomeFlow, menuFlow, flowPexelsImg, flowConsultasIA, getMusic])
+    const adapterFlow = createFlow([welcomeFlow, menuFlow, pexelsImgFlow, flowConsultasIA, getMusic])
     const adapterProvider = createProvider(Provider)
 
     const adapterDB = new Database()
