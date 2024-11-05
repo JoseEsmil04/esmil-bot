@@ -28,7 +28,7 @@ const welcomeFlow = addKeyword<Provider, Database>(['Esmil Bot', 'esmilbot', 'bo
 
 const getMusic = addKeyword<Provider, Database>(EVENTS.ACTION)
 	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\nIntroduce el titulo de la cancion y el cantante..\n',
-		'Mientras mas claro mejor jeje', 'Para volver al menu diga: *menu*'],
+		'Mientras mas claro mejor jeje', 'Para volver al menu diga: *botmenu*'],
 		{ capture: true }, async (ctx, { flowDynamic, gotoFlow }) => {
 
 		if(ctx.body.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow);
@@ -49,12 +49,12 @@ const getMusic = addKeyword<Provider, Database>(EVENTS.ACTION)
 			if (ctx.body.toLocaleLowerCase().includes('si')) return gotoFlow(getMusic)
 			else return
 		}
-	).addAnswer('Esta bien, regresemos al menu...', { delay: 1000 }, async (_, { gotoFlow }) => {
+	).addAnswer('Esta bien, regresemos al botmenu...', { delay: 1000 }, async (_, { gotoFlow }) => {
 		return gotoFlow(menuFlow)
 	})
 
 const flowConsultasIA = addKeyword<Provider, Database>(EVENTS.ACTION)
-	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\n', 'Preguntame algo!', 'Para volver al menu diga: *menu*'],
+	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\n', 'Preguntame algo!', 'Para volver al menu diga: *botmenu*'],
 		{ capture: true }, async (ctx, { flowDynamic, gotoFlow }) => {
 		const consulta = ctx.body;
 		if(consulta.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow)
@@ -76,12 +76,12 @@ const flowConsultasIA = addKeyword<Provider, Database>(EVENTS.ACTION)
 			if (ctx.body.toLocaleLowerCase().includes('si')) return gotoFlow(flowConsultasIA)
 			else return
 		}
-	).addAnswer('Esta bien, regresemos al menu...', { delay: 1000 }, async (_, { gotoFlow }) => {
+	).addAnswer('Esta bien, regresemos al botmenu...', { delay: 1000 }, async (_, { gotoFlow }) => {
 		return gotoFlow(menuFlow)
 	})
 
 const pexelsImgFlow = addKeyword<Provider, Database>(EVENTS.ACTION)
-	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\nIngrese una palabra clave para buscar la *Imagen*:', 'Para volver al menu diga: *menu*'], { capture: true },
+	.addAnswer(['*EsmilBot* 👨🏽‍💻⚡\nIngrese una palabra clave para buscar la *Imagen*:', 'Para volver al menu diga: *botmenu*'], { capture: true },
 		async (ctx, { flowDynamic, gotoFlow }) => {
 			const { body, media } = await getImageFromPexels(ctx.body, process.env.PEXELS_API_KEY)
 			if(ctx.body.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow)
@@ -96,11 +96,11 @@ const pexelsImgFlow = addKeyword<Provider, Database>(EVENTS.ACTION)
 			if (ctx.body.toLocaleLowerCase().includes('si')) return gotoFlow(pexelsImgFlow)
 			else return
 		}
-	).addAnswer('Esta bien, regresemos al menu...', { delay: 1000 }, async (_, { gotoFlow }) => {
+	).addAnswer('Esta bien, regresemos al botmenu...', { delay: 1000 }, async (_, { gotoFlow }) => {
 		return gotoFlow(menuFlow)
 	})
 
-const menuFlow = addKeyword<Provider, Database>('menu').addAnswer(
+const menuFlow = addKeyword<Provider, Database>(['botmenu', 'esmilmenu']).addAnswer(
 	menu,
 	{ capture: true },
 	async (ctx, { gotoFlow, fallBack, endFlow }) => {
