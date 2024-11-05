@@ -14,7 +14,7 @@ const welcomeFlow = addKeyword<Provider, Database>(['Esmil Bot', 'esmilbot', 'bo
     .addAnswer(
         [
             'Soy un bot desarrollado por Jose Esmi!\n',
-            `👉 Escribe ${'*menu*'} para acceder al menu :)`,
+            `👉 Escribe ${'*botmenu*'} para acceder al menu :)`,
 						`Actualmente me encuentro en desarrollo, mas funcionalidades coming soon!`
         ].join('\n'),
         { delay: 1200, capture: true },
