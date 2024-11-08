@@ -29,11 +29,12 @@ const welcomeFlow = addKeyword<Provider, Database>([
 			`Actualmente me encuentro en desarrollo, mas funcionalidades coming soon!`
 		].join('\n'),
 		{ delay: 1200, capture: true },
-		async (ctx, { flowDynamic, gotoFlow }) => {
-			if (ctx.body.toLocaleLowerCase().includes('menu')) {
+		async (ctx, { endFlow, gotoFlow }) => {
+			if (ctx.body.toLocaleLowerCase().includes('botmenu')) {
 				return gotoFlow(menuFlow)
 			}
-			await flowDynamic('Adios!')
+
+			return endFlow('Adios!, puedes volverme a llamar escribiendo *esmilbot*')
 		}
 	)
 
@@ -46,7 +47,7 @@ const getMusicFlow = addKeyword<Provider, Database>(EVENTS.ACTION)
 		],
 		{ capture: true },
 		async (ctx, { flowDynamic, gotoFlow }) => {
-			if (ctx.body.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow)
+			if (ctx.body.toLocaleLowerCase() === 'botmenu') return gotoFlow(menuFlow)
 
 			const { title, shortLink } = await mp3urlToDownload(
 				ctx.body,
@@ -100,7 +101,7 @@ const promptsIAFlow = addKeyword<Provider, Database>(EVENTS.ACTION)
 		async (ctx, { flowDynamic, gotoFlow }) => {
 			const consulta = ctx.body
 
-			if (consulta.toLocaleLowerCase() === 'menu') {
+			if (consulta.toLocaleLowerCase() === 'botmenu') {
 				conversationHistory = []
 				return gotoFlow(menuFlow)
 			}
@@ -161,7 +162,7 @@ const stabbleDiffFlow = addKeyword<Provider, Database>(EVENTS.ACTION)
 				ctx.body,
 				process.env.STABBLE_DIFFUSION_KEY
 			)
-			if (ctx.body.toLocaleLowerCase() === 'menu') return gotoFlow(menuFlow)
+			if (ctx.body.toLocaleLowerCase() === 'botmenu') return gotoFlow(menuFlow)
 			await flowDynamic([
 				{ body: 'Imagen Generada!', media: response.output[0] }
 			])
@@ -211,7 +212,7 @@ const menuFlow = addKeyword<Provider, Database>([
 				return gotoFlow(getMusicFlow)
 			case '0':
 				return endFlow(
-					'Hasta luego!, puedes volverme a llamar diciendo *esmilbot*'
+					'Hasta luego!, puedes volverme a llamar escribiendo *esmilbot*'
 				)
 			default:
 				return gotoFlow(menuFlow)
