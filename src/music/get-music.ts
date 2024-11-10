@@ -41,7 +41,6 @@ export const mp3urlToDownload = async(songName: string) => {
     }
  
     const result = await response.json();
-    console.log({result})
 
     if(result.status === 'fail') {
       return { title: 'No se encontro el video, se mas especifico!' }
@@ -52,8 +51,7 @@ export const mp3urlToDownload = async(songName: string) => {
     }
     
     const shortLink = await shortUrlFn(result.link);
-    console.log({shortLink})
-
+   
     if (!shortLink) {
       throw new Error('No se pudo acortar el enlace de descarga.');
     }
@@ -67,7 +65,6 @@ export const mp3urlToDownload = async(songName: string) => {
     }
 
     const audioPath = path.join(audioDir, `${id}.mp3`);
-    console.log({audioPath})
     await downloadMp3(result.link, audioPath);
 
     return { title, audioPath };
@@ -79,7 +76,9 @@ export const mp3urlToDownload = async(songName: string) => {
 
 async function downloadMp3(url: string, outputPath: string): Promise<void> {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      'redirect': 'follow'
+    });
 
     if (!response.ok) {
       console.log({ response })
