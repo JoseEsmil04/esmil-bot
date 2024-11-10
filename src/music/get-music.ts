@@ -68,7 +68,7 @@ export const mp3urlToDownload = async(songName: string) => {
 
     const audioPath = path.join(audioDir, `${id}.mp3`);
     console.log({audioPath})
-    await downloadMp3(shortLink, audioPath);
+    await downloadMp3(result.link, audioPath);
 
     return { title, audioPath };
 
