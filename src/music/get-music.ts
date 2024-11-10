@@ -41,6 +41,7 @@ export const mp3urlToDownload = async(songName: string) => {
     }
  
     const result = await response.json();
+    console.log({result})
 
     if(result.status === 'fail') {
       return { title: 'No se encontro el video, se mas especifico!' }
@@ -51,6 +52,7 @@ export const mp3urlToDownload = async(songName: string) => {
     }
     
     const shortLink = await shortUrlFn(result.link);
+    console.log({shortLink})
 
     if (!shortLink) {
       throw new Error('No se pudo acortar el enlace de descarga.');
@@ -65,6 +67,7 @@ export const mp3urlToDownload = async(songName: string) => {
     }
 
     const audioPath = path.join(audioDir, `${id}.mp3`);
+    console.log({audioPath})
     await downloadMp3(shortLink, audioPath);
 
     return { title, audioPath };
@@ -79,15 +82,18 @@ async function downloadMp3(url: string, outputPath: string): Promise<void> {
     const response = await fetch(url);
 
     if (!response.ok) {
+      console.log({ response })
       throw new Error(`Error en la descarga: ${response.status} ${response.statusText}`);
     }
 
     // Leer el ReadableStream y convertirlo en un Buffer
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const responseBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(responseBuffer);
 
     // Guardar el Buffer en un archivo
     await fs.promises.writeFile(outputPath, buffer);
   } catch (error) {
+    console.error(error)
     throw new Error(`Error en la descarga: ${error}`); 
   }
 }
@@ -96,6 +102,7 @@ export const deleteMp3 = async(path: string): Promise<void> => {
   try {
     await fs.promises.unlink(path);
   } catch (error) {
+    console.error(error)
     throw `${error}`
   }
 }
