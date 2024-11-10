@@ -19,10 +19,7 @@ export const getMusicFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'botm
 			reset(ctx, gotoFlow, envs.INACTIVITY_MINUTES);
 			if (ctx.body.toLocaleLowerCase() === Keyword.botmenu) return gotoFlow(menuFlow)
 
-			const { title, audioPath } = await mp3urlToDownload(
-				ctx.body,
-				envs.RAPID_API_KEY
-			)
+			const { title, audioPath } = await mp3urlToDownload(ctx.body)
 
 			if(!audioPath) {
 				return fallBack(title)

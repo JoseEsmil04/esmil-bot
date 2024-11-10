@@ -1,9 +1,9 @@
 import ytSearch from 'yt-search'
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { shortUrlFn } from '~/config';
+import { envs, shortUrlFn } from '~/config';
 import { UrlVideoInterface } from '~/interfaces';
+
 
 
 const getUrlVideo = async(songName: string): Promise<UrlVideoInterface> => {
@@ -22,7 +22,7 @@ const getUrlVideo = async(songName: string): Promise<UrlVideoInterface> => {
   }
 }
 
-export const mp3urlToDownload = async(songName: string, key: string) => {
+export const mp3urlToDownload = async(songName: string) => {
 
   const { title, id } = await getUrlVideo(songName);
   const fullUrlTofetch = `https://youtube-mp36.p.rapidapi.com/dl?id=${id}`;
@@ -31,7 +31,7 @@ export const mp3urlToDownload = async(songName: string, key: string) => {
     const response = await fetch(fullUrlTofetch, {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': key,
+        'x-rapidapi-key': envs.RAPID_API_KEY,
         'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com'
       }
     });
@@ -46,12 +46,26 @@ export const mp3urlToDownload = async(songName: string, key: string) => {
       return { title: 'No se encontro el video, se mas especifico!' }
     }
 
-    const shortLink = await shortUrlFn(result.link) // Url Shortener
-    const __filename = fileURLToPath(import.meta.url);
-		const __dirname = path.dirname(__filename);
-		const audioPath = path.join(__dirname, 'audios', `${id}.mp3`);
+    if (!result.link) {
+      throw new Error('La API no devolvió un enlace de descarga.');
+    }
+    
+    const shortLink = await shortUrlFn(result.link);
 
-    await downloadMp3(shortLink, audioPath)
+    if (!shortLink) {
+      throw new Error('No se pudo acortar el enlace de descarga.');
+    }
+
+    
+    const audioDir = '/tmp/audios';
+
+    // Crear la carpeta temporal si no existe
+    if (!fs.existsSync(audioDir)) {
+      fs.mkdirSync(audioDir, { recursive: true });
+    }
+
+    const audioPath = path.join(audioDir, `${id}.mp3`);
+    await downloadMp3(shortLink, audioPath);
 
     return { title, audioPath };
 
@@ -60,7 +74,7 @@ export const mp3urlToDownload = async(songName: string, key: string) => {
   }
 }
 
-const downloadMp3 = async(url: string, outputPath: string): Promise<void> => {
+async function downloadMp3(url: string, outputPath: string): Promise<void> {
   try {
     const response = await fetch(url);
 
