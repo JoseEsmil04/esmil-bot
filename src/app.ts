@@ -1,5 +1,6 @@
-import { createBot, createProvider, createFlow, addKeyword } from '@builderbot/bot'
+import { createBot, createProvider, createFlow } from '@builderbot/bot'
 import { MemoryDB as Database } from '@builderbot/bot'
+import cors from 'cors';
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { activityFlow } from './activity/activity-flow'
 import { promptsIAFlow } from './ia/prompts-ia-flow'
@@ -32,6 +33,8 @@ const main = async () => {
 		provider: adapterProvider,
 		database: adapterDB
 	})
+
+	adapterProvider.server.use(cors())
 
 	adapterProvider.server.post(
 		'/v1/messages',
@@ -67,3 +70,4 @@ const main = async () => {
 }
 
 main()
+

@@ -4,7 +4,7 @@ import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { reset } from "~/activity/activity-flow";
 import { menuFlow } from "~/menu";
 import { Keyword } from "~/interfaces";
-import { mp3urlToDownload, deleteMp3 } from "./get-music";
+import { mp3urlToDownload, deleteMp3FromCloudinary } from "./get-music";
 
 
 export const getMusicFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'botmenu3'])
@@ -19,14 +19,14 @@ export const getMusicFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'botm
 			reset(ctx, gotoFlow, envs.INACTIVITY_MINUTES);
 			if (ctx.body.toLocaleLowerCase() === Keyword.botmenu) return gotoFlow(menuFlow)
 
-			const { title, audioPath } = await mp3urlToDownload(ctx.body)
+			const { title, audioUrl, publicId } = await mp3urlToDownload(ctx.body)
 
-			if(!audioPath) {
+			if(!audioUrl) {
 				return fallBack(title)
 			}
 			
-			await provider.sendFile(ctx.key.remoteJid as string, audioPath, title)
-			await deleteMp3(audioPath)
+			await provider.sendFile(ctx.key.remoteJid as string, audioUrl, title)
+			await deleteMp3FromCloudinary(publicId)
 			
 			await flowDynamic([
 				{

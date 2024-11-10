@@ -9,5 +9,6 @@ export const envs = {
   PHONE_NUMBER: env.get('PHONE_NUMBER').asString(),
   RAPID_API_KEY: env.get('RAPID_API_KEY').required().asString(),
   STABBLE_DIFFUSION_KEY: env.get('STABBLE_DIFFUSION_KEY').required().asString(),
-  INACTIVITY_MINUTES: env.get('INACTIVITY_MINUTES').required().asIntPositive()
+  INACTIVITY_MINUTES: env.get('INACTIVITY_MINUTES').required().asIntPositive(),
+  CLOUDINARY_API_SECRET: env.get('CLOUDINARY_API_SECRET').required().asString()
 }

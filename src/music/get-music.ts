@@ -1,10 +1,17 @@
 import ytSearch from 'yt-search'
+import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import path from 'path';
 import { envs, shortUrlFn } from '~/config';
 import { UrlVideoInterface } from '~/interfaces';
 
 
+// Configuración de Cloudinary
+cloudinary.config({
+  cloud_name: 'dh9juqxdq', // Sustituye con tu Cloud Name
+  api_key: '979467981334317',       // Sustituye con tu API Key
+  api_secret: envs.CLOUDINARY_API_SECRET, // Sustituye con tu API Secret
+});
 
 const getUrlVideo = async(songName: string): Promise<UrlVideoInterface> => {
   try {
@@ -58,39 +65,71 @@ export const mp3urlToDownload = async(songName: string) => {
 
     
     const audioDir = 'src/tmp/audios';
+    const audioPath = path.join(audioDir, 'audio.mp3');
 
     // Crear la carpeta temporal si no existe
     if (!fs.existsSync(audioDir)) {
       fs.mkdirSync(audioDir, { recursive: true });
     }
 
-    const audioPath = path.join(audioDir, `${id}.mp3`);
+    // Descargar el archivo MP3
     await downloadMp3(result.link, audioPath);
 
-    return { title, audioPath };
+    // Subir el archivo a Cloudinary
+    const publicId = `mp3s/${id}`; // Usar un ID único basado en la canción
+    const uploadResult = await uploadToCloudinary(audioPath, publicId);
+
+    // Eliminar el archivo temporal después de subirlo
+    await deleteMp3(audioPath);
+
+    return { title, audioUrl: uploadResult.secure_url, publicId };
 
   } catch (error) {
     throw new Error(`Error: ${error}`)
   }
 }
 
-async function downloadMp3(url: string, outputPath: string): Promise<void> {
+// Función para subir a Cloudinary
+const uploadToCloudinary = async (mp3Url: string, publicId: string) => {
   try {
-    const response = await fetch(url, {
-      'redirect': 'follow'
+    // Subir el archivo MP3 a Cloudinary desde la URL
+    const uploadResult = await cloudinary.uploader.upload(mp3Url, {
+      resource_type: 'auto', // Detecta automáticamente el tipo de archivo (audio, imagen, video)
+      public_id: publicId, // Usa un ID único para cada archivo
+      fetch_format: 'auto', // Formato automático de descarga
+      quality: 'auto', // Calidad automática
     });
 
-    if (!response.ok) {
-      console.log({ response })
-      throw new Error(`Error en la descarga: ${response.status} ${response.statusText}`);
-    }
+    console.log('Archivo subido con éxito a Cloudinary:', uploadResult);
+    return uploadResult; // Devuelve los detalles del archivo subido
+  } catch (error) {
+    console.error('Error subiendo el archivo a Cloudinary:', error);
+    throw new Error('Error al subir el archivo a Cloudinary.');
+  }
+};
 
-    // Leer el ReadableStream y convertirlo en un Buffer
-    const responseBuffer = await response.arrayBuffer()
-    const buffer = Buffer.from(responseBuffer);
+// Función para eliminar archivos de Cloudinary si fuera necesario
+export const deleteMp3FromCloudinary = async (publicId: string): Promise<void> => {
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
+    console.log('Archivo eliminado de Cloudinary:', publicId);
+  } catch (error) {
+    console.error('Error al eliminar el archivo de Cloudinary:', error);
+    throw new Error('Error al eliminar el archivo de Cloudinary.');
+  }
+};
 
-    // Guardar el Buffer en un archivo
-    fs.writeFileSync(outputPath, buffer);
+async function downloadMp3(url: string, outputPath: string): Promise<void> {
+  try {
+
+    await fetch(url, { 'redirect': 'follow', 'method': 'GET' })
+      .then(data => data.arrayBuffer())
+      .then(buffer => {
+        const buff = Buffer.from(buffer)
+        // Guardar el Buffer en un archivo
+        fs.writeFileSync(outputPath, buff);
+      })
+
 
   } catch (error) {
     console.error(error)
