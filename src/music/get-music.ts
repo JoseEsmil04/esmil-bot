@@ -59,7 +59,7 @@ export const mp3urlToDownload = async(songName: string) => {
     }
 
     
-    const audioDir = '/tmp/audios';
+    const audioDir = 'src/tmp/audios';
 
     // Crear la carpeta temporal si no existe
     if (!fs.existsSync(audioDir)) {
@@ -91,7 +91,8 @@ async function downloadMp3(url: string, outputPath: string): Promise<void> {
     const buffer = Buffer.from(responseBuffer);
 
     // Guardar el Buffer en un archivo
-    await fs.promises.writeFile(outputPath, buffer);
+    fs.writeFileSync(outputPath, buffer);
+
   } catch (error) {
     console.error(error)
     throw new Error(`Error en la descarga: ${error}`); 
@@ -100,7 +101,7 @@ async function downloadMp3(url: string, outputPath: string): Promise<void> {
 
 export const deleteMp3 = async(path: string): Promise<void> => {
   try {
-    await fs.promises.unlink(path);
+    fs.unlinkSync(path);
   } catch (error) {
     console.error(error)
     throw `${error}`
