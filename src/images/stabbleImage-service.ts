@@ -28,13 +28,12 @@ export const getImageStableDiffusion = async(prompt: string, key: string) => {
       })
     })
 
-    if(!response.ok) throw new Error('Error al generar la imagen');
+    if(!response.ok) throw new Error(`Error al generar la imagen: ${response.text}`);
 
     const data = await response.json();
-
     return data;
 
   } catch (err){
-    return err;
+    throw new Error(`Error consultando la Api: ${err}`);
   }
 }

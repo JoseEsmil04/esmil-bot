@@ -16,6 +16,7 @@
     "@builderbot/provider-baileys": "1.2.2",
     "@google/generative-ai": "^0.21.0",
     "dotenv": "^16.4.5",
+    "env-var": "^7.5.0",
     "sharp": "0.33.5",
     "shaveurl": "^1.1.7",
     "yt-search": "^2.12.1"
