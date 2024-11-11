@@ -1,2 +1,2 @@
-export * from './stabbleImage-flow'
-export * from './stabbleImage-service'
+export * from './imageIA-flow'
+export * from './getImage-ia'

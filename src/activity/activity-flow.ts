@@ -34,7 +34,7 @@ export const reset = (
 	start(ctx, gotoFlow, ms)
 }
 
-export const stop = (ctx: BotContext) => {
+export const stop = async(ctx: BotContext) => {
 	if (timers[ctx.from]) {
 		clearTimeout(timers[ctx.from])
 	}

@@ -1,30 +1,31 @@
-import { createBot, createProvider, createFlow } from '@builderbot/bot'
+import {
+	createBot,
+	createProvider,
+	createFlow,
+} from '@builderbot/bot'
 import { MemoryDB as Database } from '@builderbot/bot'
-import cors from 'cors';
+import cors from 'cors'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { activityFlow } from './activity/activity-flow'
 import { promptsIAFlow } from './ia/prompts-ia-flow'
-import { stabbleDiffFlow } from './images/stabbleImage-flow'
+import { imageGenFlow } from './images/imageIA-flow'
 import { getMusicFlow } from './music/getMusic-flow'
 import { menuFlow } from './menu'
 import { mainFlow, shortCutsFlow } from './main/main-flow'
 import { envs } from './config'
 
-
 const main = async () => {
 	const adapterFlow = createFlow([
 		mainFlow,
 		menuFlow,
-		stabbleDiffFlow,
+		imageGenFlow,
 		promptsIAFlow,
 		getMusicFlow,
 		activityFlow,
 		shortCutsFlow
 	])
 
-	const adapterProvider = createProvider(Provider, {
-		groupsIgnore: false
-	})
+	const adapterProvider = createProvider(Provider)
 
 	const adapterDB = new Database()
 
@@ -70,4 +71,3 @@ const main = async () => {
 }
 
 main()
-

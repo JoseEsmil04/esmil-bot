@@ -1,4 +1,5 @@
 export interface UrlVideoInterface {
   title: string
-  id: string
+  id: string,
+  url: string
 }

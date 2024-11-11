@@ -1,13 +1,13 @@
 import { addKeyword, EVENTS, MemoryDB as Database } from "@builderbot/bot"
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { reset } from "~/activity/activity-flow"
-import { getImageStableDiffusion } from "./stabbleImage-service"
+import { deleteFile, getImagefromImageGen } from "./getImage-ia"
 import { envs } from "~/config/envs"
 import { Keyword } from "~/interfaces"
 import { menuFlow } from "~/menu"
 
 
-export const stabbleDiffFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'botmenu1'])
+export const imageGenFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'botmenu1'])
 	.addAnswer(
 		[
 			'*EsmilBot* 👨🏽‍💻⚡\nIngrese una palabra clave para buscar la *Imagen*:',
@@ -18,9 +18,8 @@ export const stabbleDiffFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'b
 
 			reset(ctx, gotoFlow, envs.INACTIVITY_MINUTES)
 
-			const response = await getImageStableDiffusion(
-				ctx.body,
-				envs.STABBLE_DIFFUSION_KEY
+			const { url, publicId } = await getImagefromImageGen(
+				ctx.body
 			)
 
 			if (ctx.body.toLocaleLowerCase() === Keyword.botmenu)
@@ -29,15 +28,16 @@ export const stabbleDiffFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'b
       }
 
 			await flowDynamic([
-				{ body: 'Imagen generada!', media: response.output[0] }
+				{ body: 'Imagen generada!', media: url }
 			])
+
+			await deleteFile(publicId)
+			
 		}
-	)
-	.addAnswer(
+	).addAnswer(
 		'Quieres buscar otra imagen? Escribe:\n*(Si)* si deseas continuar\n*(No)* si deseas salir!',
 		{ capture: true, delay: 1000 },
 		async (ctx, { fallBack, gotoFlow }) => {
-			
 			if (
 				ctx.body.toLocaleLowerCase() !== Keyword.si &&
 				ctx.body.toLocaleLowerCase() !== Keyword.no
@@ -46,7 +46,7 @@ export const stabbleDiffFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'b
 			}
 
 			if (ctx.body.toLocaleLowerCase() === Keyword.si)
-				return gotoFlow(stabbleDiffFlow)
+				return gotoFlow(imageGenFlow)
 			else return
 		}
 	)
@@ -54,6 +54,7 @@ export const stabbleDiffFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'b
 		'Esta bien, regresemos al botmenu...',
 		{ delay: 800 },
 		async (_, { gotoFlow }) => {
+			
 			return gotoFlow(menuFlow)
 		}
 	)

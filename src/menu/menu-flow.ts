@@ -3,7 +3,7 @@ import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { reset, stop } from "~/activity/activity-flow"
 import { envs } from "~/config/envs"
 import { promptsIAFlow } from "~/ia/prompts-ia-flow"
-import { stabbleDiffFlow } from "~/images/stabbleImage-flow"
+import { imageGenFlow } from "~/images/imageIA-flow"
 import { getMusicFlow } from "~/music/getMusic-flow"
 import { menuEsmilBot } from "./menu-esmilbot-view"
 import { Keyword } from "~/interfaces"
@@ -21,7 +21,7 @@ export const menuFlow = addKeyword<Provider, Database>([Keyword.botmenu],
 
 		switch (ctx.body) {
 			case '1':
-				return gotoFlow(stabbleDiffFlow)
+				return gotoFlow(imageGenFlow)
 			case '2':
 				return gotoFlow(promptsIAFlow)
 			case '3':
