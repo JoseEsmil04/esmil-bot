@@ -22,31 +22,27 @@ export const getMusicFlow = addKeyword<Provider, Database>([
 			if (ctx.body.toLocaleLowerCase() === Keyword.botmenu)
 				return gotoFlow(menuFlow)
 
-			try {
-				let request = await mp3urlToDownload(ctx.body)
+			let request = await mp3urlToDownload(ctx.body)
 
-				if (!request.audioUrl) request = await mp3DownloadV2(ctx.body)
+			if (!request.audioUrl) request = await mp3DownloadV2(ctx.body)
 
-				if (!request.audioUrl) {
-					return fallBack(request.title || 'No se pudo procesar tu solicitud.')
-				}
-
-				await provider.sendFile(
-					ctx.key.remoteJid as string,
-					request.audioUrl,
-					request.title
-				)
-
-				await flowDynamic([
-					{
-						delay: 500,
-						body: '*EsmilBot* 👨🏽‍💻⚡\nDisfruta tu canción :)'
-					}
-				])
-			} catch (error) {
-				console.error(`Error: ${error}`)
-				return fallBack('Error intentando descargar, intentalo nuevamente')
+			if (!request.audioUrl) {
+				console.error('Error')
+				return fallBack(request.title || 'No se pudo procesar tu solicitud.')
 			}
+
+			await provider.sendFile(
+				ctx.key.remoteJid as string,
+				request.audioUrl,
+				request.title
+			)
+
+			await flowDynamic([
+				{
+					delay: 500,
+					body: '*EsmilBot* 👨🏽‍💻⚡\nDisfruta tu canción :)'
+				}
+			])
 		}
 	)
 	.addAnswer(
