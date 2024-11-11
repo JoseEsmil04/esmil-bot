@@ -17,7 +17,7 @@ export const getMusicFlow = addKeyword<Provider, Database>([
 			'Para volver al menu diga: *botmenu*'
 		],
 		{ capture: true },
-		async (ctx, { gotoFlow, fallBack, flowDynamic, provider }) => {
+		async (ctx, { gotoFlow, fallBack, flowDynamic }) => {
 			reset(ctx, gotoFlow, envs.INACTIVITY_MINUTES)
 			if (ctx.body.toLocaleLowerCase() === Keyword.botmenu)
 				return gotoFlow(menuFlow)
@@ -31,13 +31,14 @@ export const getMusicFlow = addKeyword<Provider, Database>([
 				return fallBack(request.title || 'No se pudo procesar tu solicitud.')
 			}
 
-			await provider.sendFile(
-				ctx.key.remoteJid as string,
-				request.audioUrl,
-				request.title
-			)
-
 			await flowDynamic([
+				{
+					body: request.title,
+					delay: 500
+				},
+				{
+					body: request.audioUrl
+				},
 				{
 					delay: 500,
 					body: '*EsmilBot* 👨🏽‍💻⚡\nDisfruta tu canción :)'

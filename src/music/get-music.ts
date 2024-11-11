@@ -19,102 +19,94 @@ const getUrlVideo = async (songName: string): Promise<UrlVideoInterface> => {
 	}
 }
 
-const fetchWithTimeout = async (url: string, options = {}, timeout = 15000) => {
-  const controller = new AbortController();
-  const { signal } = controller;
-  
-  // Configura el timeout
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+export const mp3urlToDownload = async (songName: string) => {
+	const { title, id } = await getUrlVideo(songName)
+	const fullUrlTofetch = `https://youtube-mp36.p.rapidapi.com/dl?id=${id}`
 
-  try {
-    // Ejecuta fetch con el controlador de timeout
-    const response = await fetch(url, { ...options, signal });
-    if (!response.ok) {
-      throw new Error(`Error en la solicitud: ${response.status} - ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      console.error('La solicitud fue cancelada por timeout.');
-    } else {
-      console.error(`Error en la solicitud: ${error.message}`);
-    }
-    throw error;
-  } finally {
-    // Limpia el timeout
-    clearTimeout(timeoutId);
-  }
-};
+	try {
+		const response = await fetch(fullUrlTofetch, {
+			method: 'GET',
+			headers: {
+				'x-rapidapi-key': envs.RAPID_API_KEY,
+				'x-rapidapi-host': envs.YOUTUBE_MP36
+			}
+		})
 
-// Función 1: mp3urlToDownload
-export const mp3urlToDownload = async (songName) => {
-  const { title, id } = await getUrlVideo(songName);
-  const fullUrlTofetch = `https://youtube-mp36.p.rapidapi.com/dl?id=${id}`;
+		if (!response.ok) {
+			throw new Error(
+				`Error obteniendo la url mp3: ${response.status} ${response.statusText}`
+			)
+		}
 
-  try {
-    const result = await fetchWithTimeout(fullUrlTofetch, {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': envs.RAPID_API_KEY,
-        'x-rapidapi-host': envs.YOUTUBE_MP36
-      }
-    });
+		const result = await response.json()
+		if (result.status !== 'ok' || !result.link) {
+			return {
+				title:
+					'No se encontró el video. Por favor, intenta con un nombre más específico.'
+			}
+		}
 
-    if (result.status !== 'ok' || !result.link) {
-      return {
-        title: 'No se encontró el video. Por favor, intenta con un nombre más específico.'
-      };
-    }
+		const shortLink = await shortUrlFn(result.link)
 
-    const shortLink = await shortUrlFn(result.link);
-    if (!shortLink) {
-      return {
-        title: 'Hubo un problema al generar el enlace de descarga. Intenta de nuevo.'
-      };
-    }
+		if (!shortLink) {
+			return {
+				title:
+					'Hubo un problema al generar el enlace de descarga. Intenta de nuevo.'
+			}
+		}
 
-    return { title, audioUrl: `${shortLink}.mp3` };
-  } catch (error) {
-    console.error(`Error en mp3urlToDownload: ${error}`);
-    return {
-      title: 'Ocurrió un problema al procesar tu solicitud. Intenta de nuevo más tarde.'
-    };
-  }
-};
+		return { title, audioUrl: shortLink }
+	} catch (error) {
+		console.error(`Error en mp3urlToDownload: ${error}`)
 
-// Función 2: mp3DownloadV2
-export const mp3DownloadV2 = async (songName) => {
-  const { title, url } = await getUrlVideo(songName);
-  const fullUrlTofetch = `https://youtube-mp310.p.rapidapi.com/download/mp3?url=${url}`;
+		return {
+			title:
+				'Ocurrió un problema al procesar tu solicitud. Intenta de nuevo más tarde.'
+		}
+	}
+}
 
-  try {
-    const result = await fetchWithTimeout(fullUrlTofetch, {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': envs.RAPID_API_KEY,
-        'x-rapidapi-host': envs.YOUTUBE_MP310
-      }
-    });
+export const mp3DownloadV2 = async (songName: string) => {
+	const { title, url } = await getUrlVideo(songName)
+	const fullUrlTofetch = `https://youtube-mp310.p.rapidapi.com/download/mp3?url=${url}`
 
-    if (!result || !result.downloadUrl) {
-      return {
-        title: 'No se encontró el video. Por favor, intenta con un nombre más específico.'
-      };
-    }
+	try {
+		const response = await fetch(fullUrlTofetch, {
+			method: 'GET',
+			headers: {
+				'x-rapidapi-key': envs.RAPID_API_KEY,
+				'x-rapidapi-host': envs.YOUTUBE_MP310
+			}
+		})
 
-    const shortLink = await shortUrlFn(result.downloadUrl);
-    if (!shortLink) {
-      return {
-        title: 'No se pudo generar un enlace de descarga. Intenta de nuevo.'
-      };
-    }
+		if (!response.ok) {
+			throw new Error(
+				`Error obteniendo la url mp3: ${response.status} ${response.statusText}`
+			)
+		}
 
-    return { title, audioUrl: `${shortLink}.mp3` };
-  } catch (error) {
-    console.error(`Error en mp3DownloadV2: ${error}`);
-    return {
-      title: 'Ocurrió un problema al procesar tu solicitud. Intenta de nuevo más tarde.'
-    };
-  }
-};
+		const result = await response.json()
 
+		if (!result || !result.downloadUrl) {
+			return {
+				title:
+					'No se encontró el video. Por favor, intenta con un nombre más específico.'
+			}
+		}
+
+		const shortLink = await shortUrlFn(result.downloadUrl)
+		if (!shortLink) {
+			return {
+				title: 'No se pudo generar un enlace de descarga. Intenta de nuevo.'
+			}
+		}
+
+		return { title, audioUrl: shortLink }
+	} catch (error) {
+		console.error(`Error en mp3urlToDownloadV2: ${error}`)
+		return {
+			title:
+				'Ocurrió un problema al procesar tu solicitud. Intenta de nuevo más tarde.'
+		}
+	}
+}
