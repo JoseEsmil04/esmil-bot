@@ -4,7 +4,7 @@ import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { reset } from '~/activity/activity-flow'
 import { menuFlow } from '~/menu'
 import { Keyword } from '~/interfaces'
-import { mp3DownloadV2, mp3urlToDownload } from './get-music'
+import { getMp4Video } from './get-music'
 
 export const getMusicFlow = addKeyword<Provider, Database>([
 	EVENTS.ACTION,
@@ -22,11 +22,9 @@ export const getMusicFlow = addKeyword<Provider, Database>([
 			if (ctx.body.toLocaleLowerCase() === Keyword.botmenu)
 				return gotoFlow(menuFlow)
 
-			let request = await mp3urlToDownload(ctx.body)
+			const request = await getMp4Video(ctx.body)
 
-			if (!request.audioUrl) request = await mp3DownloadV2(ctx.body)
-
-			if (!request.audioUrl) {
+			if (!request.videoUrl) {
 				console.error('Error')
 				return fallBack(request.title || 'No se pudo procesar tu solicitud.')
 			}
@@ -37,17 +35,17 @@ export const getMusicFlow = addKeyword<Provider, Database>([
 					delay: 500
 				},
 				{
-					body: request.audioUrl
+					body: request.videoUrl,
+					delay: 500
 				},
 				{
 					delay: 500,
-					body: '*EsmilBot* 👨🏽‍💻⚡\nDisfruta tu canción :)'
+					body: 'Disfruta tu canción 🎶'
 				}
 			])
 		}
-	)
-	.addAnswer(
-		'Quieres bajar otra musica? Escribe:\n*(Si)* si deseas continuar\n*(No)* si deseas salir!',
+	).addAnswer(
+		'Quieres escuchar otra cancion? Escribe:\n*(Si)* si deseas continuar\n*(No)* si deseas salir!',
 		{ capture: true, delay: 1000 },
 		async (ctx, { fallBack, gotoFlow }) => {
 			if (
@@ -63,7 +61,7 @@ export const getMusicFlow = addKeyword<Provider, Database>([
 		}
 	)
 	.addAnswer(
-		'Esta bien, regresemos al botmenu...',
+		'Esta bien, regresemos al Menu Principal...',
 		{ delay: 1000 },
 		async (_, { gotoFlow }) => {
 			return gotoFlow(menuFlow)

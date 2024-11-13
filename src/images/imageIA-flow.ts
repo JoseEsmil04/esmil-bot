@@ -1,7 +1,7 @@
 import { addKeyword, EVENTS, MemoryDB as Database } from "@builderbot/bot"
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { reset } from "~/activity/activity-flow"
-import { deleteFile, getImagefromImageGen } from "./getImage-ia"
+import { deleteFile, getImagefromImageGen } from "./getImage-ia-service"
 import { envs } from "~/config/envs"
 import { Keyword } from "~/interfaces"
 import { menuFlow } from "~/menu"
@@ -51,10 +51,9 @@ export const imageGenFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'botm
 		}
 	)
 	.addAnswer(
-		'Esta bien, regresemos al botmenu...',
-		{ delay: 800 },
+		'Esta bien, regresemos al Menu Principal...',
+		{ delay: 1000 },
 		async (_, { gotoFlow }) => {
-			
 			return gotoFlow(menuFlow)
 		}
 	)

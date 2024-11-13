@@ -62,7 +62,7 @@ export const promptsIAFlow = addKeyword<Provider, Database>([EVENTS.ACTION, 'bot
 			}
 		}
 	).addAnswer(
-		'Está bien, regresemos al botmenu...',
+		'Esta bien, regresemos al Menu Principal...',
 		{ delay: 1000 },
 		async (_, { gotoFlow }) => {
 			conversationHistory = []
